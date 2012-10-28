@@ -45,7 +45,7 @@ import openimage.io.ZuletztGeoeffnet;
 
 public class OpenImageWindow extends JFrame implements MouseListener, MouseMotionListener, WindowStateListener, ScaleCallback, DropTargetListener {
 
-    private JMenuItem save, invert, blackWhite, colorize, scale, crop, rotateR, rotateL, flipV, flipH;
+    private JMenuItem save, invert, blackWhite, colorize, brighter, darker, scale, crop, rotateR, rotateL, flipV, flipH;
     private ZuletztGeoeffnet zg;
     private PictureFileChooser pfc;
     private BufferedImage bi;
@@ -121,6 +121,24 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
             }
         });
         colors.add(colorize);
+        brighter = new JMenuItem("Heller");
+        brighter.setMnemonic(KeyEvent.VK_H);
+        brighter.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent ae) {
+                brighter();
+            }
+        });
+        colors.add(brighter);
+        darker = new JMenuItem("Dunkler");
+        darker.setMnemonic(KeyEvent.VK_D);
+        darker.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent ae) {
+                darker();
+            }
+        });
+        colors.add(darker);
         mb.add(colors);
         JMenu tools = new JMenu("Werkzeuge");
         tools.setMnemonic(KeyEvent.VK_W);
@@ -143,7 +161,6 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
             }
         });
         tools.add(crop);
-
         rotateR = new JMenuItem("Um 90° nach Rechts drehen");
         rotateR.setMnemonic(KeyEvent.VK_R);
         rotateR.addActionListener(new ActionListener() {
@@ -170,7 +187,6 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
             }
         });
         tools.add(rotateL);
-
         flipH = new JMenuItem("Horizontal spiegeln");
         flipH.setMnemonic(KeyEvent.VK_H);
         flipH.addActionListener(new ActionListener() {
@@ -311,6 +327,24 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
             }
             canvas.repaint();
         }
+    }
+    
+    private void brighter() {
+        for (int i = 0; i < bi.getHeight(); i++) {
+            for (int j = 0; j < bi.getWidth(); j++) {
+                setRGBWithOldAlpha(j, i, new Color(bi.getRGB(j, i)).brighter());
+            }
+        }
+        canvas.repaint();
+    }
+    
+    private void darker() {
+        for (int i = 0; i < bi.getHeight(); i++) {
+            for (int j = 0; j < bi.getWidth(); j++) {
+                setRGBWithOldAlpha(j, i, new Color(bi.getRGB(j, i)).darker());
+            }
+        }
+        canvas.repaint();
     }
 
     // Transparenz bleibt erhalten
@@ -482,6 +516,8 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
         invert.setEnabled(b);
         blackWhite.setEnabled(b);
         colorize.setEnabled(b);
+        brighter.setEnabled(b);
+        darker.setEnabled(b);
         scale.setEnabled(b);
         crop.setEnabled(b);
         rotateR.setEnabled(b);
