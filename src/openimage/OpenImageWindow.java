@@ -486,6 +486,7 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (Exception ex) {
         }
+        UIManager.put("Button.showMnemonics", true); // Windows accelerator underlined
         OpenImageWindow oiw = new OpenImageWindow();
         oiw.setVisible(true);
     }
