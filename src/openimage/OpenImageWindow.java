@@ -44,6 +44,7 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
     private Color colorizeColor;
     private boolean cropping, disorderedRotation;
 
+	@SuppressWarnings("LeakingThisInConstructor")
     public OpenImageWindow() {
         super("OpenImage");
         setIconImage(new ImageIcon(getClass().getResource("/openimage/images/icon.png")).getImage());
@@ -125,6 +126,7 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
         scale.addActionListener(new ActionListener() {
 
             @Override
+			@SuppressWarnings("ResultOfObjectAllocationIgnored")
             public void actionPerformed(ActionEvent ae) {
                 new ScaleDialog(OpenImageWindow.this, bi.getWidth(), bi.getHeight());
             }
@@ -248,6 +250,7 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
         }
     }
 
+	@SuppressWarnings("ResultOfObjectAllocationIgnored")
     public void open(File path) {
         try {
             BufferedImage biTmp = ImageIO.read(path);
@@ -265,6 +268,7 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
         }
     }
 
+	@SuppressWarnings("ResultOfObjectAllocationIgnored")
     private void save() {
         if (pfc.showSaveDialog(this) == 0) {
             try {
@@ -371,14 +375,14 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
     }
 
     private void updateCanvas() {
-        if (bi != null) {
-            canvas.setPreferredSize(new Dimension(bi.getWidth(), bi.getHeight()));
-        }
-        if (getState() != MAXIMIZED_BOTH) {
-            pack();
-            setLocationRelativeTo(null);
-        }
-        canvas.repaint();
+		if (bi != null) {
+			canvas.setPreferredSize(new Dimension(bi.getWidth(), bi.getHeight()));
+		}
+		if (getExtendedState() != MAXIMIZED_BOTH) {
+			pack();
+			setLocationRelativeTo(null);
+		}
+		canvas.repaint();
     }
 
     // kein winziges Fenster nach un-maximising

@@ -19,11 +19,10 @@ public class ZuletztGeoeffnet extends JMenu implements ActionListener {
 
     private OpenImageWindow oiw;
 
+	@SuppressWarnings("LeakingThisInConstructor")
     public ZuletztGeoeffnet(String s, OpenImageWindow oiw) {
         super(s);
         this.oiw = oiw;
-
-
         try {
             if (new File(System.getProperty("user.home") + File.separator + ".robin" + File.separator + "zuletztGeoeffnet.txt").exists()) {
                 BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(System.getProperty("user.home") + File.separator + ".robin" + File.separator + "zuletztGeoeffnet.txt")));
