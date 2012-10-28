@@ -52,8 +52,6 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
         setExtendedState(JFrame.MAXIMIZED_BOTH);
 
         pfc = new PictureFileChooser();
-        addMouseListener(this);
-        addMouseMotionListener(this);
         addWindowStateListener(this);
 
         // menu
@@ -239,6 +237,9 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
         };
         // kein winziges Fenster wenn kein Bild geladen ist
         canvas.setPreferredSize(new Dimension(500, 300));
+        // for cropping        
+        canvas.addMouseListener(this);
+        canvas.addMouseMotionListener(this);
         add(canvas);
 
         setImageNeedingActionsEnabled(false);
