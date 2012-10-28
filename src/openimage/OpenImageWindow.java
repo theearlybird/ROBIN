@@ -315,7 +315,6 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
     private void colorize() {
         colorizeColor = JColorChooser.showDialog(this, "Farbe auswählen...", colorizeColor);
         if (colorizeColor != null) {
-            //blackWhite(); // ???
             for (int i = 0; i < bi.getHeight(); i++) {
                 for (int j = 0; j < bi.getWidth(); j++) {
                     Color c = new Color(bi.getRGB(j, i));
@@ -549,7 +548,6 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (Exception ex) {
         }
-        UIManager.put("Button.showMnemonics", true); // Windows accelerator underlined
         OpenImageWindow oiw = new OpenImageWindow();
         oiw.setVisible(true);
     }
