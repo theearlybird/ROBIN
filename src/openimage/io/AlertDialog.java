@@ -12,7 +12,7 @@ public class AlertDialog {
         dialog.pack();
         dialog.setVisible(true);
     }
-    
+
     public AlertDialog(JFrame parent, Exception ex) {
         this(parent, ex.getMessage());
     }

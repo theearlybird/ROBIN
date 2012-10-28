@@ -19,7 +19,7 @@ public class ZuletztGeoeffnet extends JMenu implements ActionListener {
 
     private OpenImageWindow oiw;
 
-	@SuppressWarnings("LeakingThisInConstructor")
+    @SuppressWarnings("LeakingThisInConstructor")
     public ZuletztGeoeffnet(String s, OpenImageWindow oiw) {
         super(s);
         this.oiw = oiw;

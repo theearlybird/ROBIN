@@ -72,7 +72,6 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
         open.setAccelerator(KeyStroke.getKeyStroke('O', Event.CTRL_MASK));
         open.setMnemonic(KeyEvent.VK_F);
         open.addActionListener(new ActionListener() {
-
             @Override
             public void actionPerformed(ActionEvent ae) {
                 open();
@@ -86,7 +85,6 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
         save.setAccelerator(KeyStroke.getKeyStroke('S', Event.CTRL_MASK));
         save.setMnemonic(KeyEvent.VK_S);
         save.addActionListener(new ActionListener() {
-
             @Override
             public void actionPerformed(ActionEvent ae) {
                 save();
@@ -99,7 +97,6 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
         invert = new JMenuItem("Invertieren");
         invert.setMnemonic(KeyEvent.VK_I);
         invert.addActionListener(new ActionListener() {
-
             @Override
             public void actionPerformed(ActionEvent ae) {
                 invert();
@@ -109,7 +106,6 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
         blackWhite = new JMenuItem("Schwarz-weiß");
         blackWhite.setMnemonic(KeyEvent.VK_S);
         blackWhite.addActionListener(new ActionListener() {
-
             @Override
             public void actionPerformed(ActionEvent ae) {
                 blackWhite();
@@ -119,7 +115,6 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
         colorize = new JMenuItem("Einfärben");
         colorize.setMnemonic(KeyEvent.VK_E);
         colorize.addActionListener(new ActionListener() {
-
             @Override
             public void actionPerformed(ActionEvent ae) {
                 colorize();
@@ -132,7 +127,6 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
         scale = new JMenuItem("Skalieren");
         scale.setMnemonic(KeyEvent.VK_S);
         scale.addActionListener(new ActionListener() {
-
             @Override
             @SuppressWarnings("ResultOfObjectAllocationIgnored")
             public void actionPerformed(ActionEvent ae) {
@@ -143,7 +137,6 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
         crop = new JMenuItem("Freistellen");
         crop.setMnemonic(KeyEvent.VK_F);
         crop.addActionListener(new ActionListener() {
-
             @Override
             public void actionPerformed(ActionEvent ae) {
                 canvas.setCursor(new Cursor(Cursor.CROSSHAIR_CURSOR));
@@ -154,7 +147,6 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
         rotateR = new JMenuItem("Um 90° nach Rechts drehen");
         rotateR.setMnemonic(KeyEvent.VK_R);
         rotateR.addActionListener(new ActionListener() {
-
             @Override
             public void actionPerformed(ActionEvent ae) {
                 if (disorderedRotation) {
@@ -168,7 +160,6 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
         rotateL = new JMenuItem("Um 90° nach Links drehen");
         rotateL.setMnemonic(KeyEvent.VK_L);
         rotateL.addActionListener(new ActionListener() {
-
             @Override
             public void actionPerformed(ActionEvent ae) {
                 if (disorderedRotation) {
@@ -183,7 +174,6 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
         flipH = new JMenuItem("Horizontal spiegeln");
         flipH.setMnemonic(KeyEvent.VK_H);
         flipH.addActionListener(new ActionListener() {
-
             @Override
             public void actionPerformed(ActionEvent ae) {
                 flipH();
@@ -193,7 +183,6 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
         flipV = new JMenuItem("Vertikal spiegeln");
         flipV.setMnemonic(KeyEvent.VK_V);
         flipV.addActionListener(new ActionListener() {
-
             @Override
             public void actionPerformed(ActionEvent ae) {
                 flipV();
@@ -205,7 +194,6 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
 
         // open image => repaint cnavas
         canvas = new JPanel() {
-
             @Override
             public void paint(Graphics g) {
                 super.paint(g);
@@ -549,6 +537,15 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
         } catch (Exception ex) {
         }
         OpenImageWindow oiw = new OpenImageWindow();
+        // Öffnen mit.. ROBIN ermöglichen
+        // Erste passende Datei aus Liste der gedragted auswählen
+        for (String file : args) {
+            // nur Bild-Dateien akzeptieren
+            if (Utils.isImageFile(new File(file))) {
+                oiw.open(new File(file));
+                break;
+            }
+        }
         oiw.setVisible(true);
     }
 }

@@ -12,10 +12,10 @@ import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 
 public class PicturePreview extends JComponent implements PropertyChangeListener {
-    
+
     private BufferedImage bi;
-    
-	@SuppressWarnings("LeakingThisInConstructor")
+
+    @SuppressWarnings("LeakingThisInConstructor")
     public PicturePreview(JFileChooser chooser) {
         chooser.addPropertyChangeListener(this);
         setPreferredSize(new Dimension(180, 180));
@@ -24,16 +24,16 @@ public class PicturePreview extends JComponent implements PropertyChangeListener
     @Override
     public void propertyChange(PropertyChangeEvent e) {
         if (JFileChooser.SELECTED_FILE_CHANGED_PROPERTY.equals(e.getPropertyName())) {
-			if (e.getNewValue() != null) {
-				try {
-					bi = ImageIO.read((File) e.getNewValue());
-					repaint();
-				} catch (IOException ex) {
-				}
-			}
+            if (e.getNewValue() != null) {
+                try {
+                    bi = ImageIO.read((File) e.getNewValue());
+                    repaint();
+                } catch (IOException ex) {
+                }
+            }
         }
     }
-    
+
     @Override
     public void paint(Graphics g) {
         super.paint(g);
