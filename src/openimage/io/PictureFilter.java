@@ -6,12 +6,11 @@ import javax.swing.filechooser.FileFilter;
 public class PictureFilter extends FileFilter {
 
     @Override
-    public boolean accept(File pathname) {
-        if (pathname.isDirectory()) {
+    public boolean accept(File f) {
+        if (f.isDirectory()) {
             return true;
         }
-        String path = pathname.getName().toLowerCase();
-        return path.endsWith(".gif") || path.endsWith(".png") || path.endsWith(".jpg") || path.endsWith(".jpeg");
+        return Utils.isImageFile(f);
     }
 
     @Override

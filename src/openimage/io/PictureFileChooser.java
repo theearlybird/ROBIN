@@ -17,8 +17,7 @@ public class PictureFileChooser extends JFileChooser {
     public File getSelectedFile() {
         File f = super.getSelectedFile();
         if (f != null) { // keine Exception mehr bei nicht-ubuntu LookAndFeel
-            String s = f.toString().toLowerCase();
-            if (!s.endsWith(".gif") && !s.endsWith(".jpeg") && !s.endsWith(".jpg") && !s.endsWith(".png")) {
+            if (!Utils.isImageFile(f)) {
                 return new File(f.toString() + ".jpg"); // jpg ist default-format
             }
         }
