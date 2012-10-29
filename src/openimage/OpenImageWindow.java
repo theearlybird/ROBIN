@@ -36,6 +36,7 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.KeyStroke;
 import javax.swing.UIManager;
 import openimage.io.AlertDialog;
@@ -53,6 +54,8 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
     private int cropStartX, cropStartY, imgStartX, imgStartY, currentX, currentY;
     private Color colorizeColor;
     private boolean cropping, disorderedRotation;
+    private File imgFile; // for drop
+    private JScrollPane sp;
 
     @SuppressWarnings("LeakingThisInConstructor")
     public OpenImageWindow() {
@@ -211,8 +214,8 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
         // open image => repaint cnavas
         canvas = new JPanel() {
             @Override
-            public void paint(Graphics g) {
-                super.paint(g);
+            public void paintComponent(Graphics g) {
+                super.paintComponent(g);
                 if (bi != null) {
                     imgStartX = (canvas.getWidth() - bi.getWidth()) / 2; // zum Umrechnen der Mousedragged/-released in buffededimage-koordinaten
                     imgStartY = (canvas.getHeight() - bi.getHeight()) / 2;
@@ -255,7 +258,8 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
         // for cropping        
         canvas.addMouseListener(this);
         canvas.addMouseMotionListener(this);
-        add(canvas);
+        sp = new JScrollPane(canvas);
+        add(sp);
 
         setImageNeedingActionsEnabled(false);
     }
@@ -265,9 +269,15 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
             open(pfc.getSelectedFile());
         }
     }
+    
+    public void openZuletztGeoeffnet(File path) {
+        open(path);
+        // PictureFileChooser ist im aktuellen Verzeichnis, auch wenn aus ZuletztGeoeffnet-Liste geoeffnet wurde
+        pfc.setSelectedFile(path);
+    }
 
     @SuppressWarnings("ResultOfObjectAllocationIgnored")
-    public void open(File path) {
+    private void open(File path) {
         try {
             BufferedImage biTmp = ImageIO.read(path);
             if (biTmp != null) {
@@ -302,7 +312,7 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
                 setRGBWithOldAlpha(j, i, new Color(255 - c.getRed(), 255 - c.getGreen(), 255 - c.getBlue()));
             }
         }
-        canvas.repaint();
+        repaintCanvas();
     }
 
     private void blackWhite() {
@@ -313,7 +323,7 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
                 setRGBWithOldAlpha(j, i, new Color(newColor, newColor, newColor));
             }
         }
-        canvas.repaint();
+        repaintCanvas();
     }
 
     private void colorize() {
@@ -325,7 +335,7 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
                     setRGBWithOldAlpha(j, i, new Color((c.getRed() + colorizeColor.getRed()) / 2, (c.getGreen() + colorizeColor.getGreen()) / 2, (c.getBlue() + colorizeColor.getBlue()) / 2));
                 }
             }
-            canvas.repaint();
+            repaintCanvas();
         }
     }
     
@@ -335,7 +345,7 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
                 setRGBWithOldAlpha(j, i, new Color(bi.getRGB(j, i)).brighter());
             }
         }
-        canvas.repaint();
+        repaintCanvas();
     }
     
     private void darker() {
@@ -344,7 +354,7 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
                 setRGBWithOldAlpha(j, i, new Color(bi.getRGB(j, i)).darker());
             }
         }
-        canvas.repaint();
+        repaintCanvas();
     }
 
     // Transparenz bleibt erhalten
@@ -404,7 +414,7 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
                 bi.setRGB(bi.getWidth() - 1 - j, i, help);
             }
         }
-        canvas.repaint();
+        repaintCanvas();
     }
 
     private void flipH() {
@@ -415,7 +425,7 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
                 bi.setRGB(i, bi.getHeight() - 1 - j, help);
             }
         }
-        canvas.repaint();
+        repaintCanvas();
     }
 
     private void updateCanvas() {
@@ -426,7 +436,7 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
             pack();
             setLocationRelativeTo(null);
         }
-        canvas.repaint();
+        repaintCanvas();
     }
 
     // kein winziges Fenster nach un-maximising
@@ -475,7 +485,7 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
                 h = cropStartY - cropEndY;
             }
             bi = bi.getSubimage(x, y, w, h);
-            canvas.repaint();
+            repaintCanvas();
         }
     }
 
@@ -492,7 +502,7 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
         if (cropping) {
             currentX = me.getX();
             currentY = me.getY();
-            canvas.repaint();
+            repaintCanvas();
         }
     }
 
@@ -525,7 +535,11 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
         flipV.setEnabled(b);
         flipH.setEnabled(b);
     }
-    private File imgFile;
+    
+    private void repaintCanvas() {
+        setVisible(false);
+        setVisible(true);
+    }
 
     // Drag & Drop Reaktionen
     @Override

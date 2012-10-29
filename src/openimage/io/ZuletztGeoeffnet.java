@@ -78,6 +78,6 @@ public class ZuletztGeoeffnet extends JMenu implements ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent ae) {
-        oiw.open(new File(ae.getActionCommand()));
+        oiw.openZuletztGeoeffnet(new File(ae.getActionCommand()));
     }
 }
