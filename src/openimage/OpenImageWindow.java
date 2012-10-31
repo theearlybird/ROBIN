@@ -59,7 +59,6 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
     private boolean cropping, disorderedRotation;
     private File imgFile; // for drop
 
-    @SuppressWarnings("LeakingThisInConstructor")
     public OpenImageWindow() {
         super("OpenImage");
         setIconImage(new ImageIcon(getClass().getResource("/openimage/images/icon.png")).getImage());
@@ -332,7 +331,7 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
         } catch (AWTException ex) {
         }
     }
-    
+
     private void reload() {
         open(pfc.getSelectedFile());
     }
