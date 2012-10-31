@@ -46,7 +46,7 @@ import openimage.io.ZuletztGeoeffnet;
 
 public class OpenImageWindow extends JFrame implements MouseListener, MouseMotionListener, WindowStateListener, ScaleCallback, DropTargetListener {
 
-    private JMenuItem save, invert, blackWhite, colorize, brighter, darker, scale, crop, rotateR, rotateL, flipV, flipH;
+    private JMenuItem save, invert, blackWhite, colorize, brighter, darker, blur, scale, crop, rotateR, rotateL, flipV, flipH;
     private ZuletztGeoeffnet zg;
     private PictureFileChooser pfc;
     private BufferedImage bi;
@@ -142,6 +142,15 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
             }
         });
         colors.add(darker);
+        blur = new JMenuItem("Weichzeichnen");
+        blur.setMnemonic(KeyEvent.VK_W);
+        blur.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent ae) {
+                blur();
+            }
+        });
+        colors.add(blur);
         mb.add(colors);
         JMenu tools = new JMenu("Werkzeuge");
         tools.setMnemonic(KeyEvent.VK_W);
@@ -258,8 +267,9 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
         // for cropping        
         canvas.addMouseListener(this);
         canvas.addMouseMotionListener(this);
-        sp = new JScrollPane(canvas);
-        add(sp);
+        //sp = new JScrollPane(canvas);
+        //add(sp);
+        add(canvas);
 
         setImageNeedingActionsEnabled(false);
     }
@@ -269,7 +279,7 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
             open(pfc.getSelectedFile());
         }
     }
-    
+
     public void openZuletztGeoeffnet(File path) {
         open(path);
         // PictureFileChooser ist im aktuellen Verzeichnis, auch wenn aus ZuletztGeoeffnet-Liste geoeffnet wurde
@@ -338,7 +348,7 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
             repaintCanvas();
         }
     }
-    
+
     private void brighter() {
         for (int i = 0; i < bi.getHeight(); i++) {
             for (int j = 0; j < bi.getWidth(); j++) {
@@ -347,11 +357,26 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
         }
         repaintCanvas();
     }
-    
+
     private void darker() {
         for (int i = 0; i < bi.getHeight(); i++) {
             for (int j = 0; j < bi.getWidth(); j++) {
                 setRGBWithOldAlpha(j, i, new Color(bi.getRGB(j, i)).darker());
+            }
+        }
+        repaintCanvas();
+    }
+
+    private void blur() {
+        for (int i = 1; i < bi.getHeight() - 1; i++) {
+            for (int j = 1; j < bi.getWidth() - 1; j++) {
+                int r = 0, g = 0, b = 0;
+                for (Color c : new Color[]{new Color(bi.getRGB(j - 1, i - 1)), new Color(bi.getRGB(j - 1, i)), new Color(bi.getRGB(j - 1, i + 1)), new Color(bi.getRGB(j, i - 1)), new Color(bi.getRGB(j, i)), new Color(bi.getRGB(j, i + 1)), new Color(bi.getRGB(j + 1, i - 1)), new Color(bi.getRGB(j + 1, i)), new Color(bi.getRGB(j + 1, i + 1))}) {
+                    r += c.getRed();
+                    g += c.getGreen();
+                    b += c.getBlue();
+                }
+                setRGBWithOldAlpha(j, i, new Color(r / 9, g / 9, b / 9));
             }
         }
         repaintCanvas();
@@ -528,6 +553,7 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
         colorize.setEnabled(b);
         brighter.setEnabled(b);
         darker.setEnabled(b);
+        blur.setEnabled(b);
         scale.setEnabled(b);
         crop.setEnabled(b);
         rotateR.setEnabled(b);
@@ -535,10 +561,11 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
         flipV.setEnabled(b);
         flipH.setEnabled(b);
     }
-    
+
     private void repaintCanvas() {
-        setVisible(false);
-        setVisible(true);
+        //setVisible(false);
+        //setVisible(true);
+        canvas.repaint();
     }
 
     // Drag & Drop Reaktionen
