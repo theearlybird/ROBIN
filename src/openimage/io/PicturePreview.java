@@ -15,7 +15,6 @@ public class PicturePreview extends JComponent implements PropertyChangeListener
 
     private BufferedImage bi;
 
-    @SuppressWarnings("LeakingThisInConstructor")
     public PicturePreview(JFileChooser chooser) {
         chooser.addPropertyChangeListener(this);
         setPreferredSize(new Dimension(180, 180));

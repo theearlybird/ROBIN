@@ -49,7 +49,7 @@ import openimage.io.ZuletztGeoeffnet;
 
 public class OpenImageWindow extends JFrame implements MouseListener, MouseMotionListener, WindowStateListener, ScaleCallback, DropTargetListener {
 
-    private JMenuItem save, invert, blackWhite, colorize, brighter, darker, blur, scale, crop, rotateR, rotateL, flipV, flipH;
+    private JMenuItem reload, save, invert, blackWhite, colorize, brighter, darker, blur, scale, crop, rotateR, rotateL, flipV, flipH;
     private ZuletztGeoeffnet zg;
     private PictureFileChooser pfc;
     private BufferedImage bi;
@@ -95,6 +95,16 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
             }
         });
         file.add(screenCapture);
+        reload = new JMenuItem("Neu laden");
+        reload.setAccelerator(KeyStroke.getKeyStroke('Z', Event.CTRL_MASK));
+        reload.setMnemonic(KeyEvent.VK_N);
+        reload.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent ae) {
+                reload();
+            }
+        });
+        file.add(reload);
         save = new JMenuItem("Speichern");
         save.setAccelerator(KeyStroke.getKeyStroke('S', Event.CTRL_MASK));
         save.setMnemonic(KeyEvent.VK_S);
@@ -169,7 +179,6 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
         scale.setMnemonic(KeyEvent.VK_S);
         scale.addActionListener(new ActionListener() {
             @Override
-            @SuppressWarnings("ResultOfObjectAllocationIgnored")
             public void actionPerformed(ActionEvent ae) {
                 new ScaleDialog(OpenImageWindow.this, bi.getWidth(), bi.getHeight());
             }
@@ -293,7 +302,6 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
         pfc.setSelectedFile(path);
     }
 
-    @SuppressWarnings("ResultOfObjectAllocationIgnored")
     private void open(File path) {
         try {
             BufferedImage biTmp = ImageIO.read(path);
@@ -324,8 +332,11 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
         } catch (AWTException ex) {
         }
     }
+    
+    private void reload() {
+        open(pfc.getSelectedFile());
+    }
 
-    @SuppressWarnings("ResultOfObjectAllocationIgnored")
     private void save() {
         if (pfc.showSaveDialog(this) == 0) {
             try {
@@ -568,6 +579,7 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
     }
 
     private void setImageNeedingActionsEnabled(boolean b) {
+        reload.setEnabled(b);
         save.setEnabled(b);
         invert.setEnabled(b);
         blackWhite.setEnabled(b);
