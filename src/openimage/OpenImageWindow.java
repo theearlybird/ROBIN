@@ -1,5 +1,6 @@
 package openimage;
 
+import java.awt.AWTException;
 import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Cursor;
@@ -7,7 +8,10 @@ import java.awt.Dimension;
 import java.awt.Event;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Rectangle;
 import java.awt.RenderingHints;
+import java.awt.Robot;
+import java.awt.Toolkit;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.dnd.DnDConstants;
@@ -36,7 +40,6 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.KeyStroke;
 import javax.swing.UIManager;
 import openimage.io.AlertDialog;
@@ -51,11 +54,11 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
     private PictureFileChooser pfc;
     private BufferedImage bi;
     private JPanel canvas;
-    private int cropStartX, cropStartY, imgStartX, imgStartY, currentX, currentY;
+    private int cropStartX, cropStartY, imgStartX, imgStartY, currentX, currentY, maxCanvasWidth, maxCanvasHeight;
     private Color colorizeColor;
     private boolean cropping, disorderedRotation;
     private File imgFile; // for drop
-    private JScrollPane sp;
+    //private JScrollPane sp;
 
     @SuppressWarnings("LeakingThisInConstructor")
     public OpenImageWindow() {
@@ -84,6 +87,15 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
         zg = new ZuletztGeoeffnet("Zuletzt geöffnet...", this);
         zg.setMnemonic(KeyEvent.VK_Z);
         file.add(zg);
+        JMenuItem screenCapture = new JMenuItem("Bildschirmfoto aufnehmen");
+        screenCapture.setMnemonic(KeyEvent.VK_B);
+        screenCapture.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent ae) {
+                screenCapture();
+            }
+        });
+        file.add(screenCapture);
         save = new JMenuItem("Speichern");
         save.setAccelerator(KeyStroke.getKeyStroke('S', Event.CTRL_MASK));
         save.setMnemonic(KeyEvent.VK_S);
@@ -229,8 +241,6 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
                     imgStartX = (canvas.getWidth() - bi.getWidth()) / 2; // zum Umrechnen der Mousedragged/-released in buffededimage-koordinaten
                     imgStartY = (canvas.getHeight() - bi.getHeight()) / 2;
                     g.drawImage(bi, imgStartX, imgStartY, this);
-
-
                     if (cropping) {
                         int cropEndX = keepInRange(currentX - imgStartX, 0, bi.getWidth());
                         int cropEndY = keepInRange(currentY - imgStartY, 0, bi.getHeight());
@@ -301,6 +311,18 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
             }
         } catch (IOException ex) {
             new AlertDialog(this, ex);
+        }
+    }
+
+    private void screenCapture() {
+        try {
+            setVisible(false);
+            Thread.sleep(500); // sonst wird ROBIN-Fenster aufgenommen
+            bi = new Robot().createScreenCapture(new Rectangle(Toolkit.getDefaultToolkit().getScreenSize()));
+            setVisible(true);
+            setImageNeedingActionsEnabled(true);
+        } catch (InterruptedException ex) {
+        } catch (AWTException ex) {
         }
     }
 
@@ -607,6 +629,15 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
             dtde.rejectDrop();
         }
     }
+    
+    public void saveMaxCanvasSize() {
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException ex) {
+        }
+        maxCanvasWidth = canvas.getSize().width;
+        maxCanvasHeight = canvas.getSize().height;
+    }
 
     public static void main(String[] args) {
         try {
@@ -624,5 +655,6 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
             }
         }
         oiw.setVisible(true);
+        oiw.saveMaxCanvasSize();
     }
 }
