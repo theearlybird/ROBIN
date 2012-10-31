@@ -58,14 +58,13 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
     private Color colorizeColor;
     private boolean cropping, disorderedRotation;
     private File imgFile; // for drop
-    //private JScrollPane sp;
 
     @SuppressWarnings("LeakingThisInConstructor")
     public OpenImageWindow() {
         super("OpenImage");
         setIconImage(new ImageIcon(getClass().getResource("/openimage/images/icon.png")).getImage());
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setExtendedState(JFrame.MAXIMIZED_BOTH);
+        setExtendedState(MAXIMIZED_BOTH);
 
         pfc = new PictureFileChooser();
         addWindowStateListener(this);
@@ -277,8 +276,6 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
         // for cropping        
         canvas.addMouseListener(this);
         canvas.addMouseMotionListener(this);
-        //sp = new JScrollPane(canvas);
-        //add(sp);
         add(canvas);
 
         setImageNeedingActionsEnabled(false);
@@ -319,6 +316,8 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
             setVisible(false);
             Thread.sleep(500); // sonst wird ROBIN-Fenster aufgenommen
             bi = new Robot().createScreenCapture(new Rectangle(Toolkit.getDefaultToolkit().getScreenSize()));
+            // Fenster nie größer als Bildschirm
+            setExtendedState(MAXIMIZED_BOTH);
             setVisible(true);
             setImageNeedingActionsEnabled(true);
         } catch (InterruptedException ex) {
@@ -585,9 +584,12 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
     }
 
     private void repaintCanvas() {
-        //setVisible(false);
-        //setVisible(true);
-        canvas.repaint();
+        // Fenster nie größer als Bildschirm
+        if (bi != null && (bi.getWidth() > maxCanvasWidth || bi.getHeight() > maxCanvasHeight)) {
+            setExtendedState(MAXIMIZED_BOTH);
+        } else {
+            canvas.repaint();
+        }
     }
 
     // Drag & Drop Reaktionen
@@ -629,7 +631,7 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
             dtde.rejectDrop();
         }
     }
-    
+
     public void saveMaxCanvasSize() {
         try {
             Thread.sleep(500);
