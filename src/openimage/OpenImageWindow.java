@@ -49,7 +49,7 @@ import openimage.io.ZuletztGeoeffnet;
 
 public class OpenImageWindow extends JFrame implements MouseListener, MouseMotionListener, WindowStateListener, ScaleCallback, DropTargetListener {
 
-    private JMenuItem reload, save, invert, blackWhite, colorize, brighter, darker, blur, scale, crop, rotateR, rotateL, flipV, flipH;
+    private JMenuItem reload, save, invert, blackWhite, colorize, brighter, darker, blur, maximumContrast, scale, crop, rotateR, rotateL, flipV, flipH;
     private ZuletztGeoeffnet zg;
     private PictureFileChooser pfc;
     private BufferedImage bi;
@@ -171,6 +171,15 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
             }
         });
         colors.add(blur);
+        maximumContrast = new JMenuItem("Maximalkontrast");
+        maximumContrast.setMnemonic(KeyEvent.VK_M);
+        maximumContrast.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent ae) {
+                maximumContrast();
+            }
+        });
+        colors.add(maximumContrast);
         mb.add(colors);
         JMenu tools = new JMenu("Werkzeuge");
         tools.setMnemonic(KeyEvent.VK_W);
@@ -413,6 +422,31 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
         repaintCanvas();
     }
 
+    private void maximumContrast() {
+        int min = 255, max = 0;
+        for (int i = 0; i < bi.getHeight(); i++) {
+            for (int j = 0; j < bi.getWidth(); j++) {
+                Color c = new Color(bi.getRGB(j, i));
+                for (int color : new int[]{c.getRed(), c.getGreen(), c.getBlue()}) {
+                    if (color < min) {
+                        min = color;
+                    }
+                    if (color > max) {
+                        max = color;
+                    }
+                }
+            }
+        }
+        int q = 255 / (max - min);
+        for (int i = 0; i < bi.getHeight(); i++) {
+            for (int j = 0; j < bi.getWidth(); j++) {
+                Color c = new Color(bi.getRGB(j, i));
+                setRGBWithOldAlpha(j, i, new Color(c.getRed() * q - min, c.getGreen() * q - min, c.getBlue() * q - min));
+            }
+        }
+        repaintCanvas();
+    }
+
     // Transparenz bleibt erhalten
     private void setRGBWithOldAlpha(int x, int y, Color c) {
         if (bi.getAlphaRaster() != null) {
@@ -426,6 +460,11 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
 
     @Override
     public void scale(int w, int h) {
+        // anti-alising
+        boolean before = w < bi.getWidth();
+        if (before) {
+            blur();
+        }
         BufferedImage resizedImage = new BufferedImage(w, h, bi.getType());
         Graphics2D g = resizedImage.createGraphics();
         g.drawImage(bi, 0, 0, w, h, null);
@@ -435,6 +474,10 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
         g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         bi = resizedImage;
+        // anti-alising
+        if (!before) {
+            blur();
+        }
         updateCanvas();
     }
 
@@ -586,6 +629,7 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
         brighter.setEnabled(b);
         darker.setEnabled(b);
         blur.setEnabled(b);
+        maximumContrast.setEnabled(b);
         scale.setEnabled(b);
         crop.setEnabled(b);
         rotateR.setEnabled(b);
