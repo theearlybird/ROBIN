@@ -14,6 +14,7 @@ public class ScaleDialog extends JDialog implements FocusListener, ActionListene
 
     private OpenImageWindow sc;
     private JTextField wtf, htf;
+    private JButton b;
     private int oldW, oldH;
 
     public ScaleDialog(OpenImageWindow sc, int w, int h) {
@@ -28,14 +29,16 @@ public class ScaleDialog extends JDialog implements FocusListener, ActionListene
         wtf.setHorizontalAlignment(JTextField.RIGHT);
         wtf.setText(String.valueOf(w));
         wtf.addFocusListener(this);
+        wtf.addActionListener(this);
         panel.add(wtf);
         panel.add(new JLabel("x"));
         htf = new JTextField(8);
         htf.setHorizontalAlignment(JTextField.RIGHT);
         htf.setText(String.valueOf(h));
         htf.addFocusListener(this);
+        htf.addActionListener(this);
         panel.add(htf);
-        JButton b = new JButton("Skalieren");
+        b = new JButton("Skalieren");
         b.addActionListener(this);
         panel.add(b);
         add(panel);
@@ -46,11 +49,28 @@ public class ScaleDialog extends JDialog implements FocusListener, ActionListene
 
     @Override
     public void focusGained(FocusEvent fe) {
+        JTextField tf = (JTextField) fe.getComponent();
+        tf.setSelectionStart(0);
+        tf.setSelectionEnd(tf.getText().length());
     }
 
     @Override
     public void focusLost(FocusEvent fe) {
-        if (fe.getSource() == wtf) {
+        leave((JTextField) fe.getSource());
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent ae) {
+        // WICHTIG: umrechnung zum Beibehalten des Verhältnisses ausführen (in 'focusLost')
+        if (ae.getSource() instanceof JTextField) {
+            leave((JTextField) ae.getSource());
+        }
+        setVisible(false);
+        sc.scale(oldW, oldH);
+    }
+
+    public void leave(JTextField tf) {
+        if (tf == wtf) {
             try {
                 int w = Integer.parseInt(wtf.getText());
                 int h = oldH * w / oldW;
@@ -60,7 +80,7 @@ public class ScaleDialog extends JDialog implements FocusListener, ActionListene
             } catch (NumberFormatException ex) {
                 wtf.setText(String.valueOf(oldW));
             }
-        } else if (fe.getSource() == htf) {
+        } else if (tf == htf) {
             try {
                 int h = Integer.parseInt(htf.getText());
                 int w = oldW * h / oldH;
@@ -71,11 +91,5 @@ public class ScaleDialog extends JDialog implements FocusListener, ActionListene
                 htf.setText(String.valueOf(oldH));
             }
         }
-    }
-
-    @Override
-    public void actionPerformed(ActionEvent ae) {
-        setVisible(false);
-        sc.scale(oldW, oldH);
     }
 }

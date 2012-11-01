@@ -39,7 +39,9 @@ import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.KeyStroke;
 import javax.swing.UIManager;
 import openimage.io.AlertDialog;
@@ -47,9 +49,9 @@ import openimage.io.PictureFileChooser;
 import openimage.io.Utils;
 import openimage.io.ZuletztGeoeffnet;
 
-public class OpenImageWindow extends JFrame implements MouseListener, MouseMotionListener, WindowStateListener, ScaleCallback, DropTargetListener {
+public final class OpenImageWindow extends JFrame implements MouseListener, MouseMotionListener, WindowStateListener, ScaleCallback, DropTargetListener {
 
-    private JMenuItem reload, save, invert, blackWhite, colorize, brighter, darker, blur, maximumContrast, scale, crop, rotateR, rotateL, flipV, flipH;
+    private JMenuItem reload, save, invert, blackWhite, colorize, brighter, darker, blur, maximumContrast, detectEdges, scale, crop, rotateR, rotateL, flipV, flipH;
     private ZuletztGeoeffnet zg;
     private PictureFileChooser pfc;
     private BufferedImage bi;
@@ -58,6 +60,7 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
     private Color colorizeColor;
     private boolean cropping, disorderedRotation;
     private File imgFile; // for drop
+    private JScrollPane sp;
 
     public OpenImageWindow() {
         super("OpenImage");
@@ -180,6 +183,15 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
             }
         });
         colors.add(maximumContrast);
+        detectEdges = new JMenuItem("Kanten finden");
+        detectEdges.setMnemonic(KeyEvent.VK_K);
+        detectEdges.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent ae) {
+                detectEdges();
+            }
+        });
+        colors.add(detectEdges);
         mb.add(colors);
         JMenu tools = new JMenu("Werkzeuge");
         tools.setMnemonic(KeyEvent.VK_W);
@@ -290,10 +302,13 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
         canvas.setDropTarget(new DropTarget(this, this));
         // kein winziges Fenster wenn kein Bild geladen ist
         canvas.setPreferredSize(new Dimension(500, 300));
-        // for cropping        
+        // for cropping
         canvas.addMouseListener(this);
         canvas.addMouseMotionListener(this);
-        add(canvas);
+        sp = new JScrollPane(canvas);
+        sp.getVerticalScrollBar().setUnitIncrement(32);
+        sp.getHorizontalScrollBar().setUnitIncrement(32);
+        add(sp);
 
         setImageNeedingActionsEnabled(false);
     }
@@ -317,7 +332,7 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
                 bi = biTmp;
                 zg.add(path);
                 setTitle(path + " - ROBIN");
-                updateCanvas();
+                repaintCanvasAfterSizeChange();
                 setImageNeedingActionsEnabled(true);
             } else {
                 new AlertDialog(this, "Datei enthält kein Bild.");
@@ -447,6 +462,30 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
         repaintCanvas();
     }
 
+    private void detectEdges() {
+        blackWhite();
+        Color[][] matrix = new Color[bi.getWidth()][bi.getHeight()];
+        for (int i = 1; i < bi.getHeight() - 1; i++) {
+            for (int j = 1; j < bi.getWidth() - 1; j++) {
+                int r = 0, g = 0, b = 0;
+                for (Color c : new Color[]{new Color(bi.getRGB(j - 1, i - 1)), new Color(bi.getRGB(j - 1, i)), new Color(bi.getRGB(j - 1, i + 1)), new Color(bi.getRGB(j, i - 1)), new Color(bi.getRGB(j, i + 1)), new Color(bi.getRGB(j + 1, i - 1)), new Color(bi.getRGB(j + 1, i)), new Color(bi.getRGB(j + 1, i + 1))}) {
+                    r += c.getRed();
+                    g += c.getGreen();
+                    b += c.getBlue();
+                }
+                Color c = new Color(bi.getRGB(j, i));
+                matrix[j][i] = new Color((c.getRed() - r / 8) / 2 + 127, (c.getGreen() - g / 8) / 2 + 127, (c.getBlue() - b / 8) / 2 + 127);
+                //matrix[j][i] = new Color(255 - Math.abs(c.getRed() - r / 8), 255 - Math.abs(c.getGreen() - g / 8), 255 - Math.abs(c.getBlue() - b / 8));
+            }
+        }
+        for (int i = 1; i < bi.getHeight() - 1; i++) {
+            for (int j = 1; j < bi.getWidth() - 1; j++) {
+                setRGBWithOldAlpha(j, i, matrix[j][i]);
+            }
+        }
+        // 1px breiter Rahmen händel
+    }
+
     // Transparenz bleibt erhalten
     private void setRGBWithOldAlpha(int x, int y, Color c) {
         if (bi.getAlphaRaster() != null) {
@@ -478,7 +517,7 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
         if (!before) {
             blur();
         }
-        updateCanvas();
+        repaintCanvasAfterSizeChange();
     }
 
     private void rotateR() {
@@ -489,7 +528,7 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
             }
         }
         bi = newBi;
-        updateCanvas();
+        repaintCanvasAfterSizeChange();
         disorderedRotation = !disorderedRotation;
     }
 
@@ -501,7 +540,7 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
             }
         }
         bi = newBi;
-        updateCanvas();
+        repaintCanvasAfterSizeChange();
         disorderedRotation = !disorderedRotation;
     }
 
@@ -527,22 +566,11 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
         repaintCanvas();
     }
 
-    private void updateCanvas() {
-        if (bi != null) {
-            canvas.setPreferredSize(new Dimension(bi.getWidth(), bi.getHeight()));
-        }
-        if (getExtendedState() != MAXIMIZED_BOTH) {
-            pack();
-            setLocationRelativeTo(null);
-        }
-        repaintCanvas();
-    }
-
     // kein winziges Fenster nach un-maximising
     @Override
     public void windowStateChanged(WindowEvent we) {
         if (we.getOldState() == MAXIMIZED_BOTH) {
-            updateCanvas();
+            repaintCanvasAfterSizeChange();
         }
     }
 
@@ -563,28 +591,30 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
     @Override
     public void mouseReleased(MouseEvent me) {
         if (canvas.getCursor().getType() == Cursor.CROSSHAIR_CURSOR) {
+            if (JOptionPane.showConfirmDialog(this, "Markierte Fläche freistellen?", "", JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE, null) == JOptionPane.YES_OPTION) {
+                int cropEndX = keepInRange(me.getX() - imgStartX, 0, bi.getWidth());
+                int cropEndY = keepInRange(me.getY() - imgStartY, 0, bi.getHeight());
+                // Wenn x2 > x1 bzw. y2 > y1
+                int x, y, h, w;
+                if (cropStartX < cropEndX) {
+                    x = cropStartX;
+                    w = cropEndX - cropStartX;
+                } else {
+                    x = cropEndX;
+                    w = cropStartX - cropEndX;
+                }
+                if (cropStartY < cropEndY) {
+                    y = cropStartY;
+                    h = cropEndY - cropStartY;
+                } else {
+                    y = cropEndY;
+                    h = cropStartY - cropEndY;
+                }
+                bi = bi.getSubimage(x, y, w, h);
+                repaintCanvas();
+            }
             cropping = false;
             canvas.setCursor(Cursor.getDefaultCursor());
-            int cropEndX = keepInRange(me.getX() - imgStartX, 0, bi.getWidth());
-            int cropEndY = keepInRange(me.getY() - imgStartY, 0, bi.getHeight());
-            // Wenn x2 > x1 bzw. y2 > y1
-            int x, y, h, w;
-            if (cropStartX < cropEndX) {
-                x = cropStartX;
-                w = cropEndX - cropStartX;
-            } else {
-                x = cropEndX;
-                w = cropStartX - cropEndX;
-            }
-            if (cropStartY < cropEndY) {
-                y = cropStartY;
-                h = cropEndY - cropStartY;
-            } else {
-                y = cropEndY;
-                h = cropStartY - cropEndY;
-            }
-            bi = bi.getSubimage(x, y, w, h);
-            repaintCanvas();
         }
     }
 
@@ -638,12 +668,33 @@ public class OpenImageWindow extends JFrame implements MouseListener, MouseMotio
         flipH.setEnabled(b);
     }
 
+    private void repaintCanvasAfterSizeChange() {
+        if (bi != null) {
+            canvas.setPreferredSize(new Dimension(bi.getWidth(), bi.getHeight()));
+        }
+        if (getExtendedState() != MAXIMIZED_BOTH) {
+            pack();
+            setLocationRelativeTo(null);
+        }
+        repaintCanvas();
+        sp.revalidate(); // WICHTIG: Scrollbars gleich anzeigen bei großen Bildern
+    }
+
     private void repaintCanvas() {
         // Fenster nie größer als Bildschirm
         if (bi != null && (bi.getWidth() > maxCanvasWidth || bi.getHeight() > maxCanvasHeight)) {
             setExtendedState(MAXIMIZED_BOTH);
+        }
+        repaint();
+    }
+
+    // Kein Zuckeln wenn man versucht ein Fesnster mit zu großem Bild zu unmaximizen
+    @Override
+    public void setExtendedState(int state) {
+        if (bi != null && (bi.getWidth() > maxCanvasWidth || bi.getHeight() > maxCanvasHeight)) {
+            super.setExtendedState(MAXIMIZED_BOTH);
         } else {
-            canvas.repaint();
+            super.setExtendedState(state);
         }
     }
 
