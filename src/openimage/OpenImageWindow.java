@@ -63,7 +63,7 @@ public final class OpenImageWindow extends JFrame implements MouseListener, Mous
     private JScrollPane sp;
 
     public OpenImageWindow() {
-        super("OpenImage");
+        super("ROBIN");
         setIconImage(new ImageIcon(getClass().getResource("/openimage/images/icon.png")).getImage());
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setExtendedState(MAXIMIZED_BOTH);
@@ -474,8 +474,8 @@ public final class OpenImageWindow extends JFrame implements MouseListener, Mous
                     b += c.getBlue();
                 }
                 Color c = new Color(bi.getRGB(j, i));
-                matrix[j][i] = new Color((c.getRed() - r / 8) / 2 + 127, (c.getGreen() - g / 8) / 2 + 127, (c.getBlue() - b / 8) / 2 + 127);
-                //matrix[j][i] = new Color(255 - Math.abs(c.getRed() - r / 8), 255 - Math.abs(c.getGreen() - g / 8), 255 - Math.abs(c.getBlue() - b / 8));
+                //matrix[j][i] = new Color((c.getRed() - r / 8) / 2 + 127, (c.getGreen() - g / 8) / 2 + 127, (c.getBlue() - b / 8) / 2 + 127);
+                matrix[j][i] = new Color(255 - Math.abs(c.getRed() - r / 8), 255 - Math.abs(c.getGreen() - g / 8), 255 - Math.abs(c.getBlue() - b / 8));
             }
         }
         for (int i = 1; i < bi.getHeight() - 1; i++) {
