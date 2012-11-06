@@ -51,7 +51,7 @@ import openimage.io.ZuletztGeoeffnet;
 
 public final class OpenImageWindow extends JFrame implements MouseListener, MouseMotionListener, WindowStateListener, ScaleCallback, DropTargetListener {
 
-    private JMenuItem reload, save, invert, blackWhite, colorize, brighter, darker, blur, maximumContrast, detectEdges, scale, crop, rotateR, rotateL, flipV, flipH;
+    private JMenuItem reload, save, invert, blackWhite, blackWhiteWithoutShadesOfGray, colorize, brighter, darker, blur, maximumContrast, detectEdges, scale, crop, rotateR, rotateL, flipV, flipH;
     private ZuletztGeoeffnet zg;
     private PictureFileChooser pfc;
     private BufferedImage bi;
@@ -129,8 +129,8 @@ public final class OpenImageWindow extends JFrame implements MouseListener, Mous
             }
         });
         colors.add(invert);
-        blackWhite = new JMenuItem("Schwarz-weiß");
-        blackWhite.setMnemonic(KeyEvent.VK_S);
+        blackWhite = new JMenuItem("Schwarz-weiß (Graustufen)");
+        blackWhite.setMnemonic(KeyEvent.VK_G);
         blackWhite.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent ae) {
@@ -138,6 +138,15 @@ public final class OpenImageWindow extends JFrame implements MouseListener, Mous
             }
         });
         colors.add(blackWhite);
+        blackWhiteWithoutShadesOfGray = new JMenuItem("Schwarz-weiß");
+        blackWhiteWithoutShadesOfGray.setMnemonic(KeyEvent.VK_S);
+        blackWhiteWithoutShadesOfGray.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent ae) {
+                blackWhiteWithoutShadesOfGray();
+            }
+        });
+        colors.add(blackWhiteWithoutShadesOfGray);
         colorize = new JMenuItem("Einfärben");
         colorize.setMnemonic(KeyEvent.VK_E);
         colorize.addActionListener(new ActionListener() {
@@ -385,6 +394,17 @@ public final class OpenImageWindow extends JFrame implements MouseListener, Mous
             for (int j = 0; j < bi.getWidth(); j++) {
                 Color c = new Color(bi.getRGB(j, i));
                 int newColor = (c.getRed() + c.getGreen() + c.getBlue()) / 3;
+                setRGBWithOldAlpha(j, i, new Color(newColor, newColor, newColor));
+            }
+        }
+        repaintCanvas();
+    }
+
+    private void blackWhiteWithoutShadesOfGray() {
+        for (int i = 0; i < bi.getHeight(); i++) {
+            for (int j = 0; j < bi.getWidth(); j++) {
+                Color c = new Color(bi.getRGB(j, i));
+                int newColor = (c.getRed() + c.getGreen() + c.getBlue()) / 3 > 127 ? 255 : 0;//238
                 setRGBWithOldAlpha(j, i, new Color(newColor, newColor, newColor));
             }
         }
@@ -655,6 +675,7 @@ public final class OpenImageWindow extends JFrame implements MouseListener, Mous
         save.setEnabled(b);
         invert.setEnabled(b);
         blackWhite.setEnabled(b);
+        blackWhiteWithoutShadesOfGray.setEnabled(b);
         colorize.setEnabled(b);
         brighter.setEnabled(b);
         darker.setEnabled(b);
