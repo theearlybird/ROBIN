@@ -51,7 +51,7 @@ import openimage.io.ZuletztGeoeffnet;
 
 public final class OpenImageWindow extends JFrame implements MouseListener, MouseMotionListener, WindowStateListener, ScaleCallback, DropTargetListener {
 
-    private JMenuItem reload, save, invert, blackWhite, blackWhiteWithoutShadesOfGray, colorize, brighter, darker, blur, maximumContrast, detectEdges, scale, crop, rotateR, rotateL, flipV, flipH;
+    private JMenuItem reload, save, invert, blackWhite, blackWhiteFromColor, blackWhiteFromRed, blackWhiteFromGreen, blackWhiteFromBlue, blackWhiteWithoutShadesOfGray, colorize, brighter, darker, blur, maximumContrast, detectEdges, scale, crop, rotateR, rotateL, flipV, flipH;
     private ZuletztGeoeffnet zg;
     private PictureFileChooser pfc;
     private BufferedImage bi;
@@ -138,6 +138,36 @@ public final class OpenImageWindow extends JFrame implements MouseListener, Mous
             }
         });
         colors.add(blackWhite);
+        blackWhiteFromColor = new JMenu("Schwarz-weiß (Graustufen) von...");
+        blackWhiteFromColor.setMnemonic(KeyEvent.VK_V);
+        blackWhiteFromRed = new JMenuItem("Rot-Werten");
+        blackWhiteFromRed.setMnemonic(KeyEvent.VK_R);
+        blackWhiteFromRed.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent ae) {
+                blackWhiteFromColor('r');
+            }
+        });
+        blackWhiteFromColor.add(blackWhiteFromRed);
+        blackWhiteFromGreen = new JMenuItem("Grün-Werten");
+        blackWhiteFromGreen.setMnemonic(KeyEvent.VK_G);
+        blackWhiteFromGreen.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent ae) {
+                blackWhiteFromColor('g');
+            }
+        });
+        blackWhiteFromColor.add(blackWhiteFromGreen);
+        blackWhiteFromBlue = new JMenuItem("Blau-Werten");
+        blackWhiteFromBlue.setMnemonic(KeyEvent.VK_B);
+        blackWhiteFromBlue.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent ae) {
+                blackWhiteFromColor('b');
+            }
+        });
+        blackWhiteFromColor.add(blackWhiteFromBlue);
+        colors.add(blackWhiteFromColor);
         blackWhiteWithoutShadesOfGray = new JMenuItem("Schwarz-weiß");
         blackWhiteWithoutShadesOfGray.setMnemonic(KeyEvent.VK_S);
         blackWhiteWithoutShadesOfGray.addActionListener(new ActionListener() {
@@ -395,6 +425,25 @@ public final class OpenImageWindow extends JFrame implements MouseListener, Mous
                 Color c = new Color(bi.getRGB(j, i));
                 int newColor = (c.getRed() + c.getGreen() + c.getBlue()) / 3;
                 setRGBWithOldAlpha(j, i, new Color(newColor, newColor, newColor));
+            }
+        }
+        repaintCanvas();
+    }
+
+    private void blackWhiteFromColor(char color) {
+        for (int i = 0; i < bi.getHeight(); i++) {
+            for (int j = 0; j < bi.getWidth(); j++) {
+                Color c = new Color(bi.getRGB(j, i));
+                switch (color) {
+                    case 'r':
+                        setRGBWithOldAlpha(j, i, new Color(c.getRed(), c.getRed(), c.getRed()));
+                        break;
+                    case 'g':
+                        setRGBWithOldAlpha(j, i, new Color(c.getGreen(), c.getGreen(), c.getGreen()));
+                        break;
+                    case 'b':
+                        setRGBWithOldAlpha(j, i, new Color(c.getBlue(), c.getBlue(), c.getBlue()));
+                }
             }
         }
         repaintCanvas();
@@ -675,12 +724,14 @@ public final class OpenImageWindow extends JFrame implements MouseListener, Mous
         save.setEnabled(b);
         invert.setEnabled(b);
         blackWhite.setEnabled(b);
+        blackWhiteFromColor.setEnabled(b);
         blackWhiteWithoutShadesOfGray.setEnabled(b);
         colorize.setEnabled(b);
         brighter.setEnabled(b);
         darker.setEnabled(b);
         blur.setEnabled(b);
         maximumContrast.setEnabled(b);
+        detectEdges.setEnabled(b);
         scale.setEnabled(b);
         crop.setEnabled(b);
         rotateR.setEnabled(b);
