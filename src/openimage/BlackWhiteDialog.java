@@ -30,8 +30,8 @@ public class BlackWhiteDialog extends JDialog implements ChangeListener, ActionL
         JPanel panel = new JPanel();
         slider = new JSlider();
         slider.setMaximum(255);
+        slider.addChangeListener(this); // vor setValue!
         slider.setValue(127);
-        slider.addChangeListener(this);
         panel.add(slider);
         JButton b = new JButton("Anwenden");
         b.addActionListener(this);

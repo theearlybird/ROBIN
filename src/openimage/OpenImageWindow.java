@@ -369,7 +369,7 @@ public final class OpenImageWindow extends JFrame implements MouseListener, Mous
         try {
             BufferedImage biTmp = ImageIO.read(path);
             if (biTmp != null) {
-                bi = biTmp;
+                setImage(biTmp);
                 zg.add(path);
                 setTitle(path + " - ROBIN");
                 repaintCanvasAfterSizeChange();
@@ -386,7 +386,7 @@ public final class OpenImageWindow extends JFrame implements MouseListener, Mous
         try {
             setVisible(false);
             Thread.sleep(500); // sonst wird ROBIN-Fenster aufgenommen
-            bi = new Robot().createScreenCapture(new Rectangle(Toolkit.getDefaultToolkit().getScreenSize()));
+            setImage(new Robot().createScreenCapture(new Rectangle(Toolkit.getDefaultToolkit().getScreenSize())));
             // Fenster nie größer als Bildschirm
             setExtendedState(MAXIMIZED_BOTH);
             setVisible(true);
