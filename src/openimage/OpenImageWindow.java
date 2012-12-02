@@ -61,6 +61,7 @@ public final class OpenImageWindow extends JFrame implements MouseListener, Mous
     private boolean cropping, disorderedRotation;
     private File imgFile; // for drop
     private JScrollPane sp;
+    private boolean stopBlackWhite;
 
     public OpenImageWindow() {
         super("ROBIN");
@@ -173,7 +174,7 @@ public final class OpenImageWindow extends JFrame implements MouseListener, Mous
         blackWhiteWithoutShadesOfGray.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                blackWhiteWithoutShadesOfGray();
+                new BlackWhiteDialog(OpenImageWindow.this, bi);
             }
         });
         colors.add(blackWhiteWithoutShadesOfGray);
@@ -416,7 +417,7 @@ public final class OpenImageWindow extends JFrame implements MouseListener, Mous
                 setRGBWithOldAlpha(j, i, new Color(255 - c.getRed(), 255 - c.getGreen(), 255 - c.getBlue()));
             }
         }
-        repaintCanvas();
+        repaint();
     }
 
     private void blackWhite() {
@@ -427,7 +428,7 @@ public final class OpenImageWindow extends JFrame implements MouseListener, Mous
                 setRGBWithOldAlpha(j, i, new Color(newColor, newColor, newColor));
             }
         }
-        repaintCanvas();
+        repaint();
     }
 
     private void blackWhiteFromColor(char color) {
@@ -446,18 +447,25 @@ public final class OpenImageWindow extends JFrame implements MouseListener, Mous
                 }
             }
         }
-        repaintCanvas();
+        repaint();
     }
 
-    private void blackWhiteWithoutShadesOfGray() {
+    public void blackWhiteWithoutShadesOfGray(int border) {
+        stopBlackWhite = false;
         for (int i = 0; i < bi.getHeight(); i++) {
+            if (stopBlackWhite) {
+                break;
+            }
             for (int j = 0; j < bi.getWidth(); j++) {
+                if (stopBlackWhite) {
+                    break;
+                }
                 Color c = new Color(bi.getRGB(j, i));
-                int newColor = (c.getRed() + c.getGreen() + c.getBlue()) / 3 > 127 ? 255 : 0;//238
+                int newColor = (c.getRed() + c.getGreen() + c.getBlue()) / 3 > border ? 255 : 0;
                 setRGBWithOldAlpha(j, i, new Color(newColor, newColor, newColor));
             }
         }
-        repaintCanvas();
+        repaint();
     }
 
     private void colorize() {
@@ -469,7 +477,7 @@ public final class OpenImageWindow extends JFrame implements MouseListener, Mous
                     setRGBWithOldAlpha(j, i, new Color((c.getRed() + colorizeColor.getRed()) / 2, (c.getGreen() + colorizeColor.getGreen()) / 2, (c.getBlue() + colorizeColor.getBlue()) / 2));
                 }
             }
-            repaintCanvas();
+            repaint();
         }
     }
 
@@ -479,7 +487,7 @@ public final class OpenImageWindow extends JFrame implements MouseListener, Mous
                 setRGBWithOldAlpha(j, i, new Color(bi.getRGB(j, i)).brighter());
             }
         }
-        repaintCanvas();
+        repaint();
     }
 
     private void darker() {
@@ -488,7 +496,7 @@ public final class OpenImageWindow extends JFrame implements MouseListener, Mous
                 setRGBWithOldAlpha(j, i, new Color(bi.getRGB(j, i)).darker());
             }
         }
-        repaintCanvas();
+        repaint();
     }
 
     private void blur() {
@@ -503,7 +511,7 @@ public final class OpenImageWindow extends JFrame implements MouseListener, Mous
                 setRGBWithOldAlpha(j, i, new Color(r / 9, g / 9, b / 9));
             }
         }
-        repaintCanvas();
+        repaint();
     }
 
     private void maximumContrast() {
@@ -528,7 +536,7 @@ public final class OpenImageWindow extends JFrame implements MouseListener, Mous
                 setRGBWithOldAlpha(j, i, new Color(c.getRed() * q - min, c.getGreen() * q - min, c.getBlue() * q - min));
             }
         }
-        repaintCanvas();
+        repaint();
     }
 
     private void detectEdges() {
@@ -621,7 +629,7 @@ public final class OpenImageWindow extends JFrame implements MouseListener, Mous
                 bi.setRGB(bi.getWidth() - 1 - j, i, help);
             }
         }
-        repaintCanvas();
+        repaint();
     }
 
     private void flipH() {
@@ -632,7 +640,7 @@ public final class OpenImageWindow extends JFrame implements MouseListener, Mous
                 bi.setRGB(i, bi.getHeight() - 1 - j, help);
             }
         }
-        repaintCanvas();
+        repaint();
     }
 
     // kein winziges Fenster nach un-maximising
@@ -680,7 +688,7 @@ public final class OpenImageWindow extends JFrame implements MouseListener, Mous
                     h = cropStartY - cropEndY;
                 }
                 bi = bi.getSubimage(x, y, w, h);
-                repaintCanvas();
+                repaint();
             }
             cropping = false;
             canvas.setCursor(Cursor.getDefaultCursor());
@@ -700,7 +708,7 @@ public final class OpenImageWindow extends JFrame implements MouseListener, Mous
         if (cropping) {
             currentX = me.getX();
             currentY = me.getY();
-            repaintCanvas();
+            repaint();
         }
     }
 
@@ -748,16 +756,8 @@ public final class OpenImageWindow extends JFrame implements MouseListener, Mous
             pack();
             setLocationRelativeTo(null);
         }
-        repaintCanvas();
-        sp.revalidate(); // WICHTIG: Scrollbars gleich anzeigen bei großen Bildern
-    }
-
-    private void repaintCanvas() {
-        // Fenster nie größer als Bildschirm
-        if (bi != null && (bi.getWidth() > maxCanvasWidth || bi.getHeight() > maxCanvasHeight)) {
-            setExtendedState(MAXIMIZED_BOTH);
-        }
         repaint();
+        sp.revalidate(); // WICHTIG: Scrollbars gleich anzeigen bei großen Bildern
     }
 
     // Kein Zuckeln wenn man versucht ein Fesnster mit zu großem Bild zu unmaximizen
@@ -817,6 +817,15 @@ public final class OpenImageWindow extends JFrame implements MouseListener, Mous
         }
         maxCanvasWidth = canvas.getSize().width;
         maxCanvasHeight = canvas.getSize().height;
+    }
+
+    public void setImage(BufferedImage bi) {
+        this.bi = bi;
+        repaint();
+    }
+
+    public void stopBlackWhite() {
+        stopBlackWhite = true;
     }
 
     public static void main(String[] args) {
