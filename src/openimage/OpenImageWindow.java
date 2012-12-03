@@ -49,7 +49,7 @@ import openimage.io.PictureFileChooser;
 import openimage.io.Utils;
 import openimage.io.ZuletztGeoeffnet;
 
-public final class OpenImageWindow extends JFrame implements MouseListener, MouseMotionListener, WindowStateListener, ScaleCallback, DropTargetListener {
+public final class OpenImageWindow extends JFrame implements MouseListener, MouseMotionListener, WindowStateListener, DropTargetListener {
 
     private JMenuItem reload, save, invert, blackWhite, blackWhiteFromColor, blackWhiteFromRed, blackWhiteFromGreen, blackWhiteFromBlue, blackWhiteWithoutShadesOfGray, colorize, brighter, darker, blur, maximumContrast, detectEdges, scale, crop, rotateR, rotateL, flipV, flipH;
     private ZuletztGeoeffnet zg;
@@ -61,7 +61,6 @@ public final class OpenImageWindow extends JFrame implements MouseListener, Mous
     private boolean cropping, disorderedRotation;
     private File imgFile; // for drop
     private JScrollPane sp;
-    private boolean stopBlackWhite;
 
     public OpenImageWindow() {
         super("ROBIN");
@@ -451,17 +450,10 @@ public final class OpenImageWindow extends JFrame implements MouseListener, Mous
     }
 
     public void blackWhiteWithoutShadesOfGray(int border) {
-        stopBlackWhite = false;
         for (int i = 0; i < bi.getHeight(); i++) {
-            if (stopBlackWhite) {
-                break;
-            }
             for (int j = 0; j < bi.getWidth(); j++) {
-                if (stopBlackWhite) {
-                    break;
-                }
                 Color c = new Color(bi.getRGB(j, i));
-                int newColor = (c.getRed() + c.getGreen() + c.getBlue()) / 3 > border ? 255 : 0;
+                int newColor = (c.getRed() + c.getGreen() + c.getBlue()) / 3 >= border ? 255 : 0;
                 setRGBWithOldAlpha(j, i, new Color(newColor, newColor, newColor));
             }
         }
@@ -574,7 +566,6 @@ public final class OpenImageWindow extends JFrame implements MouseListener, Mous
         }
     }
 
-    @Override
     public void scale(int w, int h) {
         // anti-alising
         boolean before = w < bi.getWidth();
@@ -823,10 +814,6 @@ public final class OpenImageWindow extends JFrame implements MouseListener, Mous
         this.bi = new BufferedImage(bi.getWidth(), bi.getHeight(), BufferedImage.TYPE_INT_ARGB); // Alle Arten von Transparenz richtig verarbeiten
         this.bi.getGraphics().drawImage(bi, 0, 0, null);
         repaint();
-    }
-
-    public void stopBlackWhite() {
-        stopBlackWhite = true;
     }
 
     public static void main(String[] args) {

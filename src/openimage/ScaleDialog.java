@@ -43,6 +43,7 @@ public class ScaleDialog extends JDialog implements FocusListener, ActionListene
         panel.add(b);
         add(panel);
         pack();
+        setResizable(false);
         setLocationRelativeTo(null);
         setVisible(true);
     }
