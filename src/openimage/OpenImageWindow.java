@@ -811,8 +811,12 @@ public final class OpenImageWindow extends JFrame implements MouseListener, Mous
     }
 
     public void setImage(BufferedImage bi) {
-        this.bi = new BufferedImage(bi.getWidth(), bi.getHeight(), BufferedImage.TYPE_INT_ARGB); // Alle Arten von Transparenz richtig verarbeiten
-        this.bi.getGraphics().drawImage(bi, 0, 0, null);
+        if (bi.getType() == BufferedImage.TYPE_INT_ARGB) {
+            this.bi = bi;
+        } else {
+            this.bi = new BufferedImage(bi.getWidth(), bi.getHeight(), BufferedImage.TYPE_INT_ARGB); // Alle Arten von Transparenz richtig verarbeiten
+            this.bi.getGraphics().drawImage(bi, 0, 0, null);
+        }
         repaint();
     }
 
