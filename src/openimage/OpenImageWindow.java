@@ -402,7 +402,14 @@ public final class OpenImageWindow extends JFrame implements MouseListener, Mous
     private void save() {
         if (pfc.showSaveDialog(this) == 0) {
             try {
-                ImageIO.write(bi, pfc.getSelectedFile().toString().substring(pfc.getSelectedFile().toString().lastIndexOf('.') + 1).toLowerCase(), pfc.getSelectedFile());
+                String fileType = pfc.getSelectedFile().toString().substring(pfc.getSelectedFile().toString().lastIndexOf('.') + 1).toLowerCase();
+                if ((fileType.equals("jpg") || fileType.equals("jpeg")) && bi.getType() != BufferedImage.TYPE_INT_RGB) { // JPEG unterstützt keine Transperenz
+                    BufferedImage biTmp = new BufferedImage(bi.getWidth(null), bi.getHeight(null), BufferedImage.TYPE_INT_RGB);
+                    biTmp.createGraphics().drawImage(bi, 0, 0, biTmp.getWidth(), biTmp.getHeight(), Color.WHITE, null);
+                    ImageIO.write(biTmp, fileType, pfc.getSelectedFile());
+                } else {
+                    ImageIO.write(bi, fileType, pfc.getSelectedFile());
+                }
             } catch (IOException ex) {
                 new AlertDialog(this, ex);
             }
@@ -454,6 +461,17 @@ public final class OpenImageWindow extends JFrame implements MouseListener, Mous
             for (int j = 0; j < bi.getWidth(); j++) {
                 Color c = new Color(bi.getRGB(j, i));
                 int newColor = (c.getRed() + c.getGreen() + c.getBlue()) / 3 >= border ? 255 : 0;
+                setRGBWithOldAlpha(j, i, new Color(newColor, newColor, newColor));
+            }
+        }
+        repaint();
+    }
+
+    private void a() {
+        for (int i = 0; i < bi.getHeight(); i++) {
+            for (int j = 0; j < bi.getWidth(); j++) {
+                Color c = new Color(bi.getRGB(j, i));
+                int newColor = (c.getRed() + c.getGreen() + c.getBlue()) / 3 >= 248 ? 255 : 0;
                 setRGBWithOldAlpha(j, i, new Color(newColor, newColor, newColor));
             }
         }
@@ -543,7 +561,6 @@ public final class OpenImageWindow extends JFrame implements MouseListener, Mous
                     b += c.getBlue();
                 }
                 Color c = new Color(bi.getRGB(j, i));
-                //matrix[j][i] = new Color((c.getRed() - r / 8) / 2 + 127, (c.getGreen() - g / 8) / 2 + 127, (c.getBlue() - b / 8) / 2 + 127);
                 matrix[j][i] = new Color(255 - Math.abs(c.getRed() - r / 8), 255 - Math.abs(c.getGreen() - g / 8), 255 - Math.abs(c.getBlue() - b / 8));
             }
         }
@@ -552,7 +569,7 @@ public final class OpenImageWindow extends JFrame implements MouseListener, Mous
                 setRGBWithOldAlpha(j, i, matrix[j][i]);
             }
         }
-        // 1px breiter Rahmen händel
+        new BlackWhiteDialog(this, bi, 248);
     }
 
     // Transparenz bleibt erhalten

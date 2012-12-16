@@ -20,7 +20,7 @@ public class BlackWhiteDialog extends JDialog implements ChangeListener, ActionL
     private JSlider slider;
     private BufferedImage backup;
 
-    public BlackWhiteDialog(final OpenImageWindow sc, BufferedImage backup) {
+    public BlackWhiteDialog(final OpenImageWindow sc, BufferedImage backup, int startValue) {
         super(sc);
         this.sc = sc;
         ColorModel cm = backup.getColorModel();
@@ -31,7 +31,7 @@ public class BlackWhiteDialog extends JDialog implements ChangeListener, ActionL
         slider = new JSlider();
         slider.setMaximum(256);
         slider.addChangeListener(this); // vor setValue!
-        slider.setValue(128);
+        slider.setValue(startValue);
         panel.add(slider);
         JButton b = new JButton("Anwenden");
         b.addActionListener(this);
@@ -49,6 +49,10 @@ public class BlackWhiteDialog extends JDialog implements ChangeListener, ActionL
         setResizable(false);
         setLocationRelativeTo(null);
         setVisible(true);
+    }
+
+    public BlackWhiteDialog(OpenImageWindow sc, BufferedImage backup) {
+        this(sc, backup, 128);
     }
 
     @Override
