@@ -36,6 +36,14 @@ public class BlackWhiteDialog extends JDialog implements ChangeListener, ActionL
         JButton b = new JButton("Anwenden");
         b.addActionListener(this);
         panel.add(b);
+        JButton b2 = new JButton("Abbrechen");
+        b2.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent ae) {
+                BlackWhiteDialog.this.dispose();
+            }
+        });
+        panel.add(b2);
         add(panel);
         pack();
         setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
@@ -51,7 +59,7 @@ public class BlackWhiteDialog extends JDialog implements ChangeListener, ActionL
         setVisible(true);
     }
 
-    public BlackWhiteDialog(OpenImageWindow sc, BufferedImage backup) {
+    public BlackWhiteDialog(final OpenImageWindow sc, BufferedImage backup) {
         this(sc, backup, 128);
     }
 

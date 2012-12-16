@@ -467,17 +467,6 @@ public final class OpenImageWindow extends JFrame implements MouseListener, Mous
         repaint();
     }
 
-    private void a() {
-        for (int i = 0; i < bi.getHeight(); i++) {
-            for (int j = 0; j < bi.getWidth(); j++) {
-                Color c = new Color(bi.getRGB(j, i));
-                int newColor = (c.getRed() + c.getGreen() + c.getBlue()) / 3 >= 248 ? 255 : 0;
-                setRGBWithOldAlpha(j, i, new Color(newColor, newColor, newColor));
-            }
-        }
-        repaint();
-    }
-
     private void colorize() {
         colorizeColor = JColorChooser.showDialog(this, "Farbe auswählen...", colorizeColor);
         if (colorizeColor != null) {
@@ -552,10 +541,10 @@ public final class OpenImageWindow extends JFrame implements MouseListener, Mous
     private void detectEdges() {
         blackWhite();
         Color[][] matrix = new Color[bi.getWidth()][bi.getHeight()];
-        for (int i = 1; i < bi.getHeight() - 1; i++) {
-            for (int j = 1; j < bi.getWidth() - 1; j++) {
+        for (int i = 0; i < bi.getHeight(); i++) {
+            for (int j = 0; j < bi.getWidth(); j++) {
                 int r = 0, g = 0, b = 0;
-                for (Color c : new Color[]{new Color(bi.getRGB(j - 1, i - 1)), new Color(bi.getRGB(j - 1, i)), new Color(bi.getRGB(j - 1, i + 1)), new Color(bi.getRGB(j, i - 1)), new Color(bi.getRGB(j, i + 1)), new Color(bi.getRGB(j + 1, i - 1)), new Color(bi.getRGB(j + 1, i)), new Color(bi.getRGB(j + 1, i + 1))}) {
+                for (Color c : new Color[]{new Color(getColorWithOutOfBoundsCheck(j - 1, i - 1)), new Color(getColorWithOutOfBoundsCheck(j - 1, i)), new Color(getColorWithOutOfBoundsCheck(j - 1, i + 1)), new Color(getColorWithOutOfBoundsCheck(j, i - 1)), new Color(getColorWithOutOfBoundsCheck(j, i + 1)), new Color(getColorWithOutOfBoundsCheck(j + 1, i - 1)), new Color(getColorWithOutOfBoundsCheck(j + 1, i)), new Color(getColorWithOutOfBoundsCheck(j + 1, i + 1))}) {
                     r += c.getRed();
                     g += c.getGreen();
                     b += c.getBlue();
@@ -564,12 +553,28 @@ public final class OpenImageWindow extends JFrame implements MouseListener, Mous
                 matrix[j][i] = new Color(255 - Math.abs(c.getRed() - r / 8), 255 - Math.abs(c.getGreen() - g / 8), 255 - Math.abs(c.getBlue() - b / 8));
             }
         }
-        for (int i = 1; i < bi.getHeight() - 1; i++) {
-            for (int j = 1; j < bi.getWidth() - 1; j++) {
+        for (int i = 0; i < bi.getHeight(); i++) {
+            for (int j = 0; j < bi.getWidth(); j++) {
                 setRGBWithOldAlpha(j, i, matrix[j][i]);
             }
         }
-        new BlackWhiteDialog(this, bi, 248);
+        new BlackWhiteDialog(OpenImageWindow.this, bi, 248);
+    }
+
+    private int getColorWithOutOfBoundsCheck(int x, int y) {
+        if (x == -1) {
+            x = bi.getWidth() - 1;
+        }
+        if (y == -1) {
+            y = bi.getHeight() - 1;
+        }
+        if (x == bi.getWidth()) {
+            x = 0;
+        }
+        if (y == bi.getHeight()) {
+            y = 0;
+        }
+        return bi.getRGB(x, y);
     }
 
     // Transparenz bleibt erhalten

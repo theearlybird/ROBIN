@@ -41,6 +41,14 @@ public class ScaleDialog extends JDialog implements FocusListener, ActionListene
         b = new JButton("Skalieren");
         b.addActionListener(this);
         panel.add(b);
+        JButton b2 = new JButton("Abbrechen");
+        b2.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent ae) {
+                ScaleDialog.this.dispose();
+            }
+        });
+        panel.add(b2);
         add(panel);
         pack();
         setResizable(false);
@@ -66,7 +74,7 @@ public class ScaleDialog extends JDialog implements FocusListener, ActionListene
         if (ae.getSource() instanceof JTextField) {
             leave((JTextField) ae.getSource());
         }
-        setVisible(false);
+        dispose();
         sc.scale(oldW, oldH);
     }
 
