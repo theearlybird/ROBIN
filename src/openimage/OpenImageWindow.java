@@ -206,6 +206,7 @@ public final class OpenImageWindow extends JFrame implements MouseListener, Mous
         colors.add(darker);
         blur = new JMenuItem("Weichzeichnen");
         blur.setMnemonic(KeyEvent.VK_W);
+        blur.setAccelerator(KeyStroke.getKeyStroke('W', Event.CTRL_MASK));
         blur.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent ae) {
