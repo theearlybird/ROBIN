@@ -467,6 +467,36 @@ public final class OpenImageWindow extends JFrame implements MouseListener, Mous
         repaint();
     }
 
+    public void posterize() {
+        blur();
+        blackWhiteWithoutShadesOfGray(192);
+        /*int x, y;
+         do {
+         x = (int) (Math.random() * bi.getWidth());
+         y = (int) (Math.random() * bi.getHeight());
+         } while (bi.getRGB(x, y) != Color.white.getRGB());
+         floodFill(x, y);*/
+    }
+
+    private void floodFill(int x, int y) {
+        System.out.println(x + ", " + y);
+        repaint();
+        bi.setRGB(x, y, Color.red.getRGB());
+        tryXY(x, y - 1);
+        tryXY(x, y + 1);
+        tryXY(x - 1, y);
+        tryXY(x + 1, y);
+    }
+
+    private void tryXY(int x, int y) {
+        try {
+            if (bi.getRGB(x, y) == Color.white.getRGB()) {
+                floodFill(x, y);
+            }
+        } catch (ArrayIndexOutOfBoundsException ex) {
+        }
+    }
+
     private void colorize() {
         colorizeColor = JColorChooser.showDialog(this, "Farbe auswählen...", colorizeColor);
         if (colorizeColor != null) {
@@ -666,6 +696,7 @@ public final class OpenImageWindow extends JFrame implements MouseListener, Mous
 
     @Override
     public void mouseClicked(MouseEvent me) {
+        floodFill(me.getX() - imgStartX, me.getY() - imgStartY);
     }
 
     // crop

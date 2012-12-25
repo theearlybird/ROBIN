@@ -73,5 +73,6 @@ public class BlackWhiteDialog extends JDialog implements ChangeListener, ActionL
     @Override
     public void actionPerformed(ActionEvent ae) {
         setVisible(false);
+        sc.posterize();
     }
 }
