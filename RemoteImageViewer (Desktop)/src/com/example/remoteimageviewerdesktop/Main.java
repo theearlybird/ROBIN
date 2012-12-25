@@ -90,6 +90,7 @@ public class Main extends JFrame implements DropTargetListener {
 			dtde.rejectDrop();
 	}
 
+	// bla bla bla
 	private boolean isImage(URL f) {
 		String n = f.toString().toLowerCase();
 		return n.endsWith(".png") || n.endsWith(".jpg") || n.endsWith(".jpeg") || n.endsWith(".gif") || n.endsWith(".bmp");
