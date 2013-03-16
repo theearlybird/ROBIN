@@ -51,16 +51,18 @@ import openimage.io.ZuletztGeoeffnet;
 
 public final class OpenImageWindow extends JFrame implements MouseListener, MouseMotionListener, WindowStateListener, DropTargetListener {
 
-    private JMenuItem reload, save, invert, blackWhite, blackWhiteFromColor, blackWhiteFromRed, blackWhiteFromGreen, blackWhiteFromBlue, blackWhiteWithoutShadesOfGray, colorize, brighter, darker, blur, maximumContrast, detectEdges, scale, crop, rotateR, rotateL, flipV, flipH;
+    private JMenuItem reload, save, invert, blackWhite, blackWhiteFromColor, desaturate, blackWhiteFromRed, blackWhiteFromGreen, blackWhiteFromBlue, blackWhiteWithoutShadesOfGray, colorize, brighter, darker, blur, maximumContrast, detectEdges, scale, crop, rotateR, rotateL, flipV, flipH;
     private ZuletztGeoeffnet zg;
     private PictureFileChooser pfc;
     private BufferedImage bi;
+    private boolean[][] biFinished;
     private JPanel canvas;
     private int cropStartX, cropStartY, imgStartX, imgStartY, currentX, currentY, maxCanvasWidth, maxCanvasHeight;
     private Color colorizeColor;
     private boolean cropping, disorderedRotation;
     private File imgFile; // for drop
     private JScrollPane sp;
+    private static final int red = Color.red.getRGB();
 
     public OpenImageWindow() {
         super("ROBIN");
@@ -177,6 +179,15 @@ public final class OpenImageWindow extends JFrame implements MouseListener, Mous
             }
         });
         colors.add(blackWhiteWithoutShadesOfGray);
+        desaturate = new JMenuItem("Desaturieren");
+        desaturate.setMnemonic(KeyEvent.VK_A);
+        desaturate.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent ae) {
+                new SaturationDialog(OpenImageWindow.this, bi);
+            }
+        });
+        colors.add(desaturate);
         colorize = new JMenuItem("Einfärben");
         colorize.setMnemonic(KeyEvent.VK_E);
         colorize.addActionListener(new ActionListener() {
@@ -214,7 +225,7 @@ public final class OpenImageWindow extends JFrame implements MouseListener, Mous
             }
         });
         colors.add(blur);
-        maximumContrast = new JMenuItem("Maximalkontrast");
+        /*maximumContrast = new JMenuItem("Maximalkontrast");
         maximumContrast.setMnemonic(KeyEvent.VK_M);
         maximumContrast.addActionListener(new ActionListener() {
             @Override
@@ -222,7 +233,7 @@ public final class OpenImageWindow extends JFrame implements MouseListener, Mous
                 maximumContrast();
             }
         });
-        colors.add(maximumContrast);
+        colors.add(maximumContrast);*/
         detectEdges = new JMenuItem("Kanten finden");
         detectEdges.setMnemonic(KeyEvent.VK_K);
         detectEdges.addActionListener(new ActionListener() {
@@ -360,26 +371,31 @@ public final class OpenImageWindow extends JFrame implements MouseListener, Mous
     }
 
     public void openZuletztGeoeffnet(File path) {
-        open(path);
-        // PictureFileChooser ist im aktuellen Verzeichnis, auch wenn aus ZuletztGeoeffnet-Liste geoeffnet wurde
-        pfc.setSelectedFile(path);
+        if (open(path)) {
+            // PictureFileChooser ist im aktuellen Verzeichnis, auch wenn aus ZuletztGeoeffnet-Liste geoeffnet wurde
+            pfc.setSelectedFile(path.getAbsoluteFile());
+        }
     }
 
-    private void open(File path) {
-        try {
-            BufferedImage biTmp = ImageIO.read(path);
-            if (biTmp != null) {
-                setImage(biTmp);
-                zg.add(path);
-                setTitle(path + " - ROBIN");
-                repaintCanvasAfterSizeChange();
-                setImageNeedingActionsEnabled(true);
-            } else {
-                new AlertDialog(this, "Datei enthält kein Bild.");
+    private boolean open(File path) {
+        if (path != null) {
+            try {
+                BufferedImage biTmp = ImageIO.read(path);
+                if (biTmp != null) {
+                    setImage(biTmp);
+                    zg.add(path);
+                    setTitle(path + " - ROBIN");
+                    repaintCanvasAfterSizeChange();
+                    setImageNeedingActionsEnabled(true);
+                    return true;
+                } else {
+                    new AlertDialog(this, "Datei enthält kein Bild.");
+                }
+            } catch (IOException ex) {
+                new AlertDialog(this, ex);
             }
-        } catch (IOException ex) {
-            new AlertDialog(this, ex);
         }
+        return false;
     }
 
     private void screenCapture() {
@@ -391,6 +407,7 @@ public final class OpenImageWindow extends JFrame implements MouseListener, Mous
             setExtendedState(MAXIMIZED_BOTH);
             setVisible(true);
             setImageNeedingActionsEnabled(true);
+            pfc.setSelectedFile(null);
         } catch (InterruptedException ex) {
         } catch (AWTException ex) {
         }
@@ -480,22 +497,38 @@ public final class OpenImageWindow extends JFrame implements MouseListener, Mous
     }
 
     private void floodFill(int x, int y) {
-        System.out.println(x + ", " + y);
-        repaint();
-        bi.setRGB(x, y, Color.red.getRGB());
-        tryXY(x, y - 1);
-        tryXY(x, y + 1);
-        tryXY(x - 1, y);
-        tryXY(x + 1, y);
+        if (!biFinished[x][y]) {
+            biFinished[x][y] = true;
+            //System.out.println(x + ", " + y);
+
+            bi.setRGB(x, y, red);
+            int maxD = 100;
+            boolean stop = true;
+            if (y > 0 && Math.abs(getSum(x, y) - getSum(x, y - 1)) < maxD) {
+                floodFill(x, y - 1);
+                stop = false;
+            }
+            if (y < bi.getHeight() - 1 && Math.abs(getSum(x, y) - getSum(x, y + 1)) < maxD) {
+                floodFill(x, y + 1);
+                stop = false;
+            }
+            if (x > 0 && Math.abs(getSum(x, y) - getSum(x - 1, y)) < maxD) {
+                floodFill(x - 1, y);
+                stop = false;
+            }
+            if (x < bi.getWidth() - 1 && Math.abs(getSum(x, y) - getSum(x + 1, y)) < maxD) {
+                floodFill(x + 1, y);
+                stop = false;
+            }
+            if (stop) {
+                repaint();
+            }
+        }
     }
 
-    private void tryXY(int x, int y) {
-        try {
-            if (bi.getRGB(x, y) == Color.white.getRGB()) {
-                floodFill(x, y);
-            }
-        } catch (ArrayIndexOutOfBoundsException ex) {
-        }
+    private int getSum(int x, int y) {
+        //Color c = new Color(bi.getRGB(x, y));
+        return 0;//c.getRed() + c.getGreen() + c.getBlue();
     }
 
     private void colorize() {
@@ -559,11 +592,11 @@ public final class OpenImageWindow extends JFrame implements MouseListener, Mous
                 }
             }
         }
-        int q = 255 / (max - min);
+        double q = 255f / (max - min);
         for (int i = 0; i < bi.getHeight(); i++) {
             for (int j = 0; j < bi.getWidth(); j++) {
                 Color c = new Color(bi.getRGB(j, i));
-                setRGBWithOldAlpha(j, i, new Color(c.getRed() * q - min, c.getGreen() * q - min, c.getBlue() * q - min));
+                setRGBWithOldAlpha(j, i, new Color((int) (c.getRed() * q - min), (int) (c.getGreen() * q - min), (int) (c.getBlue() * q - min)));
             }
         }
         repaint();
@@ -590,6 +623,24 @@ public final class OpenImageWindow extends JFrame implements MouseListener, Mous
             }
         }
         new BlackWhiteDialog(OpenImageWindow.this, bi, 248);
+    }
+
+    public void desaturate(double value) {
+        value /= 100;
+        for (int i = 0; i < bi.getHeight(); i++) {
+            for (int j = 0; j < bi.getWidth(); j++) {
+                Color c = new Color(bi.getRGB(j, i));
+                setRGBWithOldAlpha(j, i, y(c.getRed(), c.getGreen(), c.getBlue(), value));
+            }
+        }
+        repaint();
+    }
+
+    private Color y(int r, int g, int b, double value) {
+        if (r + g + b < 384) {
+            return new Color((int) (r * (1 - value)), (int) (g * (1 - value)), (int) (b * (1 - value)));
+        }
+        return new Color((int) (255 - (255 - r) * (1 - value)), (int) (255 - (255 - g) * (1 - value)), (int) (255 - (255 - b) * (1 - value)));
     }
 
     private int getColorWithOutOfBoundsCheck(int x, int y) {
@@ -697,7 +748,8 @@ public final class OpenImageWindow extends JFrame implements MouseListener, Mous
 
     @Override
     public void mouseClicked(MouseEvent me) {
-        floodFill(me.getX() - imgStartX, me.getY() - imgStartY);
+        //biFinished = new boolean[bi.getWidth()][bi.getHeight()];
+        //floodFill(me.getX() - imgStartX, me.getY() - imgStartY);
     }
 
     // crop
@@ -778,12 +830,13 @@ public final class OpenImageWindow extends JFrame implements MouseListener, Mous
         invert.setEnabled(b);
         blackWhite.setEnabled(b);
         blackWhiteFromColor.setEnabled(b);
+        desaturate.setEnabled(b);
         blackWhiteWithoutShadesOfGray.setEnabled(b);
         colorize.setEnabled(b);
         brighter.setEnabled(b);
         darker.setEnabled(b);
         blur.setEnabled(b);
-        maximumContrast.setEnabled(b);
+        //maximumContrast.setEnabled(b);
         detectEdges.setEnabled(b);
         scale.setEnabled(b);
         crop.setEnabled(b);

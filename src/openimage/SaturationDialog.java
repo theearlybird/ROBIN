@@ -14,24 +14,24 @@ import javax.swing.WindowConstants;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-public class BlackWhiteDialog extends JDialog implements ChangeListener, ActionListener {
+public class SaturationDialog extends JDialog implements ChangeListener, ActionListener {
 
     private OpenImageWindow sc;
     private JSlider slider;
     private BufferedImage backup;
 
-    public BlackWhiteDialog(final OpenImageWindow sc, BufferedImage backup, int startValue) {
+    public SaturationDialog(final OpenImageWindow sc, BufferedImage backup) {
         super(sc);
         this.sc = sc;
         ColorModel cm = backup.getColorModel();
         this.backup = new BufferedImage(cm, backup.copyData(null), cm.isAlphaPremultiplied(), null);
-        setTitle("Schwarz-weiß");
+        setTitle("Desaturieren");
         setModal(true);
         JPanel panel = new JPanel();
         slider = new JSlider();
-        slider.setMaximum(256);
+        slider.setMaximum(100);
         slider.addChangeListener(this); // vor setValue!
-        slider.setValue(startValue);
+        slider.setValue(100);
         panel.add(slider);
         JButton b = new JButton("Anwenden");
         b.addActionListener(this);
@@ -40,7 +40,7 @@ public class BlackWhiteDialog extends JDialog implements ChangeListener, ActionL
         b2.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                BlackWhiteDialog.this.dispose();
+                SaturationDialog.this.dispose();
             }
         });
         panel.add(b2);
@@ -50,8 +50,8 @@ public class BlackWhiteDialog extends JDialog implements ChangeListener, ActionL
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosed(WindowEvent e) {
-                ColorModel cm = BlackWhiteDialog.this.backup.getColorModel();
-                sc.setImage(new BufferedImage(cm, BlackWhiteDialog.this.backup.copyData(null), cm.isAlphaPremultiplied(), null));
+                ColorModel cm = SaturationDialog.this.backup.getColorModel();
+                sc.setImage(new BufferedImage(cm, SaturationDialog.this.backup.copyData(null), cm.isAlphaPremultiplied(), null));
             }
         });
         setResizable(false);
@@ -59,20 +59,15 @@ public class BlackWhiteDialog extends JDialog implements ChangeListener, ActionL
         setVisible(true);
     }
 
-    public BlackWhiteDialog(final OpenImageWindow sc, BufferedImage backup) {
-        this(sc, backup, 128);
-    }
-
     @Override
     public void stateChanged(ChangeEvent ce) {
         ColorModel cm = backup.getColorModel();
         sc.setImage(new BufferedImage(cm, backup.copyData(null), cm.isAlphaPremultiplied(), null));
-        sc.blackWhiteWithoutShadesOfGray(slider.getValue());
+        sc.desaturate(slider.getValue());
     }
 
     @Override
     public void actionPerformed(ActionEvent ae) {
         setVisible(false);
-        //sc.posterize();
     }
 }
